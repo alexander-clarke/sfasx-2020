@@ -89,12 +89,8 @@ public class Environment : MonoBehaviour
                 bool isAccessible = start || Random.value < AccessiblePercentage;
                 List<EnvironmentTile> tiles = isAccessible ? AccessibleTiles : InaccessibleTiles;
                 EnvironmentTile prefab = tiles[Random.Range(0, tiles.Count)];
-                EnvironmentTile tile = Instantiate(prefab, position, Quaternion.identity, transform);
-                tile.Position = new Vector3( position.x + (TileSize / 2), TileHeight, position.z + (TileSize / 2));
-                tile.IsAccessible = isAccessible;
-                tile.gameObject.name = string.Format("Tile({0},{1})", x, y);
-                mMap[x][y] = tile;
-                mAll.Add(tile);
+
+                EnvironmentTile tile = AddTile(prefab, new Vector2Int(x, y), isAccessible);
 
                 if(start)
                 {
@@ -290,5 +286,33 @@ public class Environment : MonoBehaviour
         mLastSolution = result;
 
         return result;
+    }
+
+    private EnvironmentTile AddTile(EnvironmentTile prefab, Vector2Int pos, bool accessible)
+    {
+        int halfWidth = Size.x / 2;
+        int halfHeight = Size.y / 2;
+        Vector3 position = new Vector3(pos.x * TileSize - halfWidth * TileSize, TileHeight, pos.y * TileSize - halfHeight * TileSize);
+
+        EnvironmentTile tile = Instantiate(prefab, position, Quaternion.identity, transform);
+        position.x += (TileSize / 2);
+        position.z += (TileSize / 2);
+        tile.Position = position;
+
+        tile.IsAccessible = accessible;
+
+        tile.gameObject.name = string.Format("Tile({0},{1})", pos.x, pos.y);
+        mMap[pos.x][pos.y] = tile;
+
+        mAll.Add(tile);
+
+        return tile;
+    }
+
+    public void SwapTile(EnvironmentTile prefab, Vector2Int pos, bool accessible)
+    {
+        Destroy(mMap[pos.x][pos.y].gameObject);
+        AddTile(prefab, pos, accessible);
+        SetupConnections(); // Slow but kept for now
     }
 }
