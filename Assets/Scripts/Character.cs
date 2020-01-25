@@ -33,7 +33,8 @@ public class Character : MonoBehaviour
         // Move through each tile in the given route
         if (route != null)
         {
-            Vector3 position = CurrentPosition.Position;
+            
+            Vector3 position = transform.position;
             for (int count = 0; count < route.Count; ++count)
             {
                 Vector3 next = route[count].Position;
