@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 
 public class Game : MonoBehaviour
 {
-    [SerializeField] private Camera MainCamera;
+    [SerializeField] public Camera MainCamera;
     [SerializeField] private Character Character;
     [SerializeField] private Canvas Menu;
     [SerializeField] private Canvas Hud;
@@ -15,6 +15,8 @@ public class Game : MonoBehaviour
     private Character mCharacter;
     private Environment mMap;
 
+    private CameraController cameraController;
+
     private readonly int NumberOfRaycastHits = 1;
 
     void Start()
@@ -23,6 +25,7 @@ public class Game : MonoBehaviour
         mMap = GetComponentInChildren<Environment>();
         mCharacter = Instantiate(Character, transform); 
         ShowMenu(true);
+        cameraController = MainCamera.GetComponent<CameraController>();
     }
 
     private void Update()
@@ -42,6 +45,36 @@ public class Game : MonoBehaviour
                     mCharacter.GoTo(route);
                 }
             }
+        }
+
+        if (Input.mouseScrollDelta.y > 0)
+        {
+            cameraController.ZoomIn();
+        }
+
+        if (Input.mouseScrollDelta.y < 0)
+        {
+            cameraController.ZoomOut();
+        }
+
+        if (Input.GetKey(KeyCode.W))
+        {
+            cameraController.MoveUp();
+        }
+
+        if (Input.GetKey(KeyCode.A))
+        {
+            cameraController.MoveLeft();
+        }
+
+        if (Input.GetKey(KeyCode.S))
+        {
+            cameraController.MoveDown();
+        }
+
+        if (Input.GetKey(KeyCode.D))
+        {
+            cameraController.MoveRight();
         }
     }
 
