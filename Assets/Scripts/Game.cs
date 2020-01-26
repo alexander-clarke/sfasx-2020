@@ -12,7 +12,6 @@ public class Game : MonoBehaviour
     [SerializeField] private Canvas Hud;
     [SerializeField] private Canvas GameOver;
     [Header("Controllers")]
-    [SerializeField] private Transform CharacterStart;
     [SerializeField] private BuildManager buildManager;
     [SerializeField] private EnemyController enemyController;
     [SerializeField] private MoneyManager money;
@@ -22,13 +21,6 @@ public class Game : MonoBehaviour
     private CameraController cameraController;
 
     public int health { get; private set; }
-
-    public enum State
-    {
-        Menu,
-        GameOver,
-
-    }
 
     void Start()
     {
