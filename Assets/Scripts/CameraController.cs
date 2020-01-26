@@ -61,35 +61,27 @@ public class CameraController : MonoBehaviour
 
     public void MoveUp()
     {
-        desired2d.y += moveAmmount * Time.deltaTime * (zoom / 100);
+        MoveIn2dDir(Vector2.up * moveAmmount);
     }
 
     public void MoveDown()
     {
-        desired2d.y -= moveAmmount * Time.deltaTime * (zoom / 100);
-
+        MoveIn2dDir(Vector2.down * moveAmmount);
     }
 
     public void MoveLeft()
     {
-        desired2d.x -= moveAmmount * Time.deltaTime * (zoom / 100);
-
+        MoveIn2dDir(Vector2.left * moveAmmount);
     }
 
     public void MoveRight()
     {
-        desired2d.x += moveAmmount * Time.deltaTime * (zoom / 100);
-
-    }
-
-    public void MoveTowards()
-    {
-
+        MoveIn2dDir(Vector2.right * moveAmmount);
     }
 
     public void MoveIn2dDir(Vector2 dir)
     {
-        desired2d = (new Vector2(transform.position.x, transform.position.z)) + dir;
+        desired2d += dir * Time.deltaTime * (zoom / 100);
     }
 
 }

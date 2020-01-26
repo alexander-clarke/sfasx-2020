@@ -6,6 +6,7 @@ public class Environment : MonoBehaviour
 {
     [SerializeField] private List<EnvironmentTile> AccessibleTiles;
     [SerializeField] private List<EnvironmentTile> InaccessibleTiles;
+    [SerializeField] private EnvironmentTile home;
     [SerializeField] private Vector2Int Size;
     [SerializeField] private float AccessiblePercentage;
 
@@ -14,11 +15,25 @@ public class Environment : MonoBehaviour
     private List<EnvironmentTile> mToBeTested;
     private List<EnvironmentTile> mLastSolution;
 
-    private readonly Vector3 NodeSize = Vector3.one * 9.0f; 
+    private readonly Vector3 NodeSize = Vector3.one * 9.0f;
     private const float TileSize = 10.0f;
-    private const float TileHeight = 2.5f;
+    internal float TileHeight { get; } = 2.5f;
+
+    private Vector2Int homePos = new Vector2Int {x = 10, y = 10 };
 
     public EnvironmentTile Start { get; private set; }
+
+
+    public event System.EventHandler MapUpdated;
+
+    protected virtual void OnMapUpdated()
+    {
+        System.EventHandler handler = MapUpdated;
+        if (MapUpdated != null)
+        {
+            handler(this, System.EventArgs.Empty);
+        }
+    }
 
     private void Awake()
     {
@@ -69,6 +84,23 @@ public class Environment : MonoBehaviour
         }
     }
 
+    public EnvironmentTile GetTileBelow(Vector3 position)
+    {
+        int numHits = 3;
+        RaycastHit[] rayCastHits = new RaycastHit[numHits];
+        Ray ray = new Ray(position + 10 * Vector3.up, Vector3.down);
+        int hits = Physics.RaycastNonAlloc(ray, rayCastHits);
+        for (int i = 0; i < hits; i++)
+        {
+            EnvironmentTile tile = rayCastHits[i].transform.GetComponent<EnvironmentTile>();
+            if (tile != null)
+            {
+                return tile;
+            }
+        }
+        return null;
+    }
+
     private void Generate()
     {
         // Setup the map of the environment tiles according to the specified width and height
@@ -86,16 +118,31 @@ public class Environment : MonoBehaviour
             mMap[x] = new EnvironmentTile[Size.y];
             for ( int y = 0; y < Size.y; ++y)
             {
-                bool isAccessible = start || Random.value < AccessiblePercentage;
-                List<EnvironmentTile> tiles = isAccessible ? AccessibleTiles : InaccessibleTiles;
-                EnvironmentTile prefab = tiles[Random.Range(0, tiles.Count)];
+                Vector2Int position2d = new Vector2Int(x, y);
 
-                EnvironmentTile tile = AddTile(prefab, new Vector2Int(x, y), isAccessible);
+                bool isAccessible;
+                EnvironmentTile prefab;
 
-                if(start)
+                if (homePos == position2d)
                 {
-                    Start = tile;
+                    isAccessible = true;
+                    prefab = home;
                 }
+                else
+                {
+                    isAccessible = start || Random.value < AccessiblePercentage;
+                    List<EnvironmentTile> tiles = isAccessible ? AccessibleTiles : InaccessibleTiles;
+                    prefab = tiles[Random.Range(0, tiles.Count)];
+                }
+
+
+
+                EnvironmentTile tile = AddTile(prefab, position2d, isAccessible);
+
+                //if(start)
+                //{
+                //    Start = tile;
+                //}
 
                 position.z += TileSize;
                 start = false;
@@ -292,14 +339,16 @@ public class Environment : MonoBehaviour
     {
         int halfWidth = Size.x / 2;
         int halfHeight = Size.y / 2;
-        Vector3 position = new Vector3(pos.x * TileSize - halfWidth * TileSize, TileHeight, pos.y * TileSize - halfHeight * TileSize);
+        Vector3 position = new Vector3(pos.x * TileSize - halfWidth * TileSize, 0, pos.y * TileSize - halfHeight * TileSize);
 
         EnvironmentTile tile = Instantiate(prefab, position, Quaternion.identity, transform);
         position.x += (TileSize / 2);
         position.z += (TileSize / 2);
+        position.y += TileHeight;
         tile.Position = position;
 
         tile.IsAccessible = accessible;
+        tile.position2D = pos;
 
         tile.gameObject.name = string.Format("Tile({0},{1})", pos.x, pos.y);
         mMap[pos.x][pos.y] = tile;
@@ -309,10 +358,18 @@ public class Environment : MonoBehaviour
         return tile;
     }
 
-    public void SwapTile(EnvironmentTile prefab, Vector2Int pos, bool accessible)
+    public EnvironmentTile SwapTile(EnvironmentTile prefab, Vector2Int pos, bool accessible)
     {
+        Debug.Log("Swapping tiles at: " + pos);
         Destroy(mMap[pos.x][pos.y].gameObject);
-        AddTile(prefab, pos, accessible);
+        EnvironmentTile tile = AddTile(prefab, pos, accessible);
         SetupConnections(); // Slow but kept for now
+        OnMapUpdated();
+        return tile;
+    }
+
+    public EnvironmentTile GetTile(Vector2Int pos)
+    {
+        return mMap[pos.x][pos.y];
     }
 }

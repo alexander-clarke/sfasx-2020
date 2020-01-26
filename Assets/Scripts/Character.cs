@@ -1,12 +1,64 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Character : MonoBehaviour
 {
     [SerializeField] private float SingleNodeMoveTime = 0.5f;
+    [SerializeField] private int health = 100;
+
+    [SerializeField] private Material hitMaterial;
+    [SerializeField] private Material normalMaterial;
+    [SerializeField] private Material invisibleMaterial;
+
+    [SerializeField] SkinnedMeshRenderer[] meshRenderer;
+
+    [SerializeField] EnemyController enemyController;
+
+    [SerializeField] GameObject ragdoll;
+    [SerializeField] Rigidbody rb;
+
+    public void Start()
+    {
+        enemyController = GetComponentInParent<EnemyController>();
+        meshRenderer = GetComponentsInChildren<SkinnedMeshRenderer>();
+        rb = GetComponent<Rigidbody>();
+    }
 
     public EnvironmentTile CurrentPosition { get; set; }
+
+    public void TakeDamage(int damage)
+    {
+        health -= damage;
+        StartCoroutine(DoGetHit());
+        if (health <= 0)
+        {
+            StopAllCoroutines();
+            
+            enemyController.remove(this);
+
+            Instantiate(ragdoll, transform.position, transform.rotation, transform.parent);
+            rb.AddForce((transform.rotation * Vector3.forward) * 100);
+            ragdoll.GetComponent<Rigidbody>().velocity = rb.velocity;
+            ragdoll.GetComponent<Rigidbody>().angularVelocity = rb.angularVelocity;
+            Destroy(gameObject);
+        }
+        
+    }
+
+    private IEnumerator DoGetHit()
+    {
+        foreach (SkinnedMeshRenderer mesh in meshRenderer)
+        {
+            mesh.material = hitMaterial;
+        }
+        yield return new WaitForSeconds(1);
+        foreach (SkinnedMeshRenderer mesh in meshRenderer)
+        {
+            mesh.material = normalMaterial;
+        }
+    }
 
     private IEnumerator DoMove(Vector3 position, Vector3 destination)
     {
@@ -35,7 +87,7 @@ public class Character : MonoBehaviour
         {
             
             Vector3 position = transform.position;
-            for (int count = 0; count < route.Count; ++count)
+            for (int count = 1; count < route.Count; ++count)
             {
                 Vector3 next = route[count].Position;
                 yield return DoMove(position, next);
