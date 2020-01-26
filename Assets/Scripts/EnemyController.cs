@@ -106,9 +106,10 @@ public class EnemyController : MonoBehaviour
 
     internal void CleanUpEnemies()
     {
-        foreach (Character enemy in enemies)
+        // Destroy all enemies and ragdolls
+        foreach (Transform t in transform)
         {
-            Destroy(enemy.gameObject);
+            Destroy(t.gameObject); 
         }
         enemies.Clear();
     }

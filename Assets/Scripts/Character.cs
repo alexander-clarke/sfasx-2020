@@ -5,25 +5,24 @@ using UnityEngine;
 
 public class Character : MonoBehaviour
 {
+    [Header("Stats")]
     [SerializeField] private float SingleNodeMoveTime = 0.5f;
     [SerializeField] private int health = 100;
 
+    [Header("Material change when hit")]
     [SerializeField] private Material hitMaterial;
     [SerializeField] private Material normalMaterial;
-    [SerializeField] private Material invisibleMaterial;
 
     [SerializeField] SkinnedMeshRenderer[] meshRenderer;
 
     [SerializeField] EnemyController enemyController;
 
     [SerializeField] GameObject ragdoll;
-    [SerializeField] Rigidbody rb;
 
     public void Start()
     {
         enemyController = GetComponentInParent<EnemyController>();
         meshRenderer = GetComponentsInChildren<SkinnedMeshRenderer>();
-        rb = GetComponent<Rigidbody>();
     }
 
     public EnvironmentTile CurrentPosition { get; set; }
@@ -39,9 +38,6 @@ public class Character : MonoBehaviour
             enemyController.remove(this);
 
             Instantiate(ragdoll, transform.position, transform.rotation, transform.parent);
-            rb.AddForce((transform.rotation * Vector3.forward) * 100);
-            ragdoll.GetComponent<Rigidbody>().velocity = rb.velocity;
-            ragdoll.GetComponent<Rigidbody>().angularVelocity = rb.angularVelocity;
             Destroy(gameObject);
         }
         
@@ -87,7 +83,7 @@ public class Character : MonoBehaviour
         {
             
             Vector3 position = transform.position;
-            for (int count = 1; count < route.Count; ++count)
+            for (int count = 1; count < route.Count; ++count) // Edited to go from 1st positon to help when route is updated (and unit is between tiles)
             {
                 Vector3 next = route[count].Position;
                 yield return DoMove(position, next);

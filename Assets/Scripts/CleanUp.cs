@@ -14,7 +14,7 @@ public class CleanUp : MonoBehaviour
     private IEnumerator DoCleanUp()
     {
         yield return new WaitForEndOfFrame();
-        GetComponent<Rigidbody>().AddForce((transform.rotation * Vector3.forward).normalized * 5000);
+        GetComponent<Rigidbody>().AddForce((transform.rotation * Vector3.forward).normalized * 10000);
         yield return new WaitForSeconds(10);
 
         Destroy(gameObject);

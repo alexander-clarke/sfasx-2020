@@ -6,17 +6,6 @@ using UnityEngine;
 public class Tower : MonoBehaviour
 {
     [SerializeField] public EnvironmentTile tile;
-
-    //[SerializeField] State state;
-
-    //[SerializeField] private enum State
-    //{
-    //    inactive,
-    //    placing,
-    //    active,
-    //}
-
-
     [SerializeField] LineRenderer lr;
     [SerializeField] GetClosestEnemy getClosestEnemy;
     [SerializeField] Transform shootPoint;
@@ -29,7 +18,6 @@ public class Tower : MonoBehaviour
     [SerializeField] int damage;
 
 
-    // Start is called before the first frame update
     void Start()
     {
         tile = GetComponent<EnvironmentTile>();
@@ -37,33 +25,29 @@ public class Tower : MonoBehaviour
         lr = GetComponentInChildren<LineRenderer>();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
-
     private IEnumerator DoShooting()
     {
         while(true)
         {
-            yield return new WaitUntil(EnemyInRange);
-            FireWeapon(getClosestEnemy.closestCharacter);
-            yield return new WaitForSeconds(timeBetweenShots);
+            yield return new WaitUntil(() => getClosestEnemy.closestCharacter != null);
+            if (FireWeapon(getClosestEnemy.closestCharacter))
+            {
+                yield return new WaitForSeconds(timeBetweenShots);
+            }
         }
     }
 
-    private void FireWeapon(Character target)
+    private bool FireWeapon(Character target)
     {
         if (target == null)
         {
             Debug.LogError("Fire Weapon called with no target");
-            return;
+            return false;
         }
         lr.SetPositions(new Vector3[2] { shootPoint.position, target.transform.position });
         StartCoroutine(TurnLaserOnAndOff());
         target.TakeDamage(damage);
+        return true;
     }
 
     private IEnumerator TurnLaserOnAndOff()
@@ -71,16 +55,6 @@ public class Tower : MonoBehaviour
         lr.enabled = true;
         yield return new WaitForSeconds(0.2f);
         lr.enabled = false;
-    }
-
-    private bool EnemyInRange()
-    {
-        return getClosestEnemy.closestCharacter != null;
-    }
-
-    void StartShooting()
-    {
-        
     }
 
     public void Activate()
@@ -98,7 +72,7 @@ public class Tower : MonoBehaviour
     {
         if (place)
         {
-
+            // Planned shader change to indicate the placing mode
         }
         else
         {
